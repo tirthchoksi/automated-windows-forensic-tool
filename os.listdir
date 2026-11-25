@@ -1,0 +1,27 @@
+elif os.path.isdir(src):
+            sub = os.path.join(out_dir, label)
+            os.makedirs(sub, exist_ok=True)
+            count = 0
+            try:
+                entries = os.listdir(src)
+            except PermissionError:
+                print(f"[-] Permission denied listing directory (run as Admin): {src}")
+                continue
+
+            for fname in entries:
+                f_src = os.path.join(src, fname)
+                if os.path.isfile(f_src):
+                    f_dst = os.path.join(sub, fname)
+                    try:
+                        shutil.copy2(f_src, f_dst)
+                        manifest.append({
+                            "artifact": f"{label}:{fname}",
+                            "source": f_src,
+                            "collected_copy": f_dst,
+                            "sha256": sha256_file(f_dst),
+                            "collected_utc": datetime.now(timezone.utc).isoformat(),
+                        })
+                        count += 1
+                    except (PermissionError, OSError):
+                        continue
+            print(f"[+] Collected {count} files from {label}")
